@@ -1,20 +1,52 @@
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="utf-8">
     <title>演習課題5-2：外部APIの呼び出しテスト</title>
 </head>
 <body>
-    <h1 id="msg">何かのAPI</h1>
+    <h1 id="msg">天気予報APIテスト</h1>
     <form name="apiform"><p>
-        何かのフォーム：<input type="text" name="form_data">
+        都市名（例: Tokyo）：<input type="text" name="form_data">
         <button type="button" id="btn1" onclick="some_api(this.form)">実行</button>
     </p></form>
-    
+
     <div id="result"></div>
+
     <script>
         async function some_api(myForm) {
-            // ここにコードを書く
-            document.getElementById("result").innerHTML += myForm.form_data.value+"<br />";
+            const city = myForm.form_data.value.trim();
+
+            if (!city) {
+                document.getElementById("result").innerHTML = "都市名を入力してください。<br />";
+                return;
+            }
+
+            const apiKey = "0adeda8ea4d6043db5395e05ed908dc5";
+            const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=ja`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error("天気情報の取得に失敗しました。都市名が正しいか確認してください。");
+                }
+
+                const data = await response.json();
+
+                const weather = data.weather[0].description;
+                const temp = data.main.temp;
+                const humidity = data.main.humidity;
+
+                document.getElementById("result").innerHTML = `
+                    <strong>${data.name}</strong> の天気<br />
+                    天候：${weather}<br />
+                    気温：${temp}℃<br />
+                    湿度：${humidity}%<br /><hr />
+                `;
+            } catch (error) {
+                document.getElementById("result").innerHTML = `エラー: ${error.message}<br />`;
+            }
+
             document.apiform.reset();
         }
     </script>
